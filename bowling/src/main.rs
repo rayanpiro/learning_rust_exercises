@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum ImperativeFrame<T> {
     Open(T, T),
     Spare(T),
@@ -91,7 +91,7 @@ impl<T> ImperativeFrame<T>
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum RecursiveFrame<T> {
     Open(T, T),
     Spare(T),
@@ -181,4 +181,107 @@ fn main() {
     let score = scores_array.iter().sum::<u32>();
 
     println!("\nRecursive Way\n{:?}\n{:?}\n{:?}\n", frames_array, scores_array, score);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recursive_to_frame() {
+        use RecursiveFrame::{Strike, Spare, Open};
+
+        // Open on the first and last position
+        let test_case = RecursiveFrame::to_frame(&vec![0,0]).unwrap();
+        assert_eq!(test_case, [Open(0,0)]);
+
+        // Strike on the first and last position
+        let test_case = RecursiveFrame::to_frame(&vec![10,2,3]).unwrap();
+        assert_eq!(test_case, [Strike(2,3)]);
+
+        // Spare on the first and last position
+        let test_case = RecursiveFrame::to_frame(&vec![9,1,2]).unwrap();
+        assert_eq!(test_case, [Spare(2)]);
+
+        // Spare on first position then Open
+        let test_case = RecursiveFrame::to_frame(&vec![9,1,2,3]).unwrap();
+        assert_eq!(test_case, [Spare(2), Open(2,3)]);
+
+        // 10 Open with 0 pins
+        let test_case = RecursiveFrame::to_frame(&vec![0; 20]).unwrap();
+        assert_eq!(test_case, vec![Open(0,0); 10]);
+
+        // 8 Open with 2 pins, 1 Spare and 1 Strike
+        let test_case = RecursiveFrame::to_frame(&[vec![1; 16], vec![9,1,10,2,3]].concat()).unwrap();
+        assert_eq!(test_case, [vec![Open(1,1); 8], vec![Spare(10)], vec![Strike(2,3)]].concat());
+    }
+
+    #[test]
+    fn test_recursive_to_score_list() {
+        use RecursiveFrame::{Strike, Spare, Open};
+
+        // Perfect game 10xOpen(1,1) 20 points
+        let test_case = RecursiveFrame::frame_list_to_score(&vec![Open(1,1); 10]);
+        assert_eq!(test_case, vec![2; 10]);
+        assert_eq!(test_case.iter().sum::<u32>(), 20);
+
+        // Perfect game 8xOpen(1,1), Spare, Strike, Open(2,3) 51 points
+        let test_case = RecursiveFrame::frame_list_to_score(&[vec![Open(1,1); 8], vec![Spare(10)], vec![Strike(2,3)]].concat());
+        assert_eq!(test_case, [vec![2; 8], vec![20], vec![15]].concat());
+        assert_eq!(test_case.iter().sum::<u32>(), 51);
+
+        // Perfect game 10 Strikes 300 points
+        let test_case = RecursiveFrame::frame_list_to_score(&vec![Strike(10,10); 10]);
+        assert_eq!(test_case, vec![30; 10]);
+        assert_eq!(test_case.iter().sum::<u32>(), 300);
+    }
+
+    #[test]
+    fn test_imperative_to_frame() {
+        use ImperativeFrame::{Strike, Spare, Open};
+
+        // Open on the first and last position
+        let test_case = ImperativeFrame::to_frame(&vec![0,0]).unwrap();
+        assert_eq!(test_case, [Open(0,0)]);
+
+        // Strike on the first and last position
+        let test_case = ImperativeFrame::to_frame(&vec![10,2,3]).unwrap();
+        assert_eq!(test_case, [Strike(2,3)]);
+
+        // Spare on the first and last position
+        let test_case = ImperativeFrame::to_frame(&vec![9,1,2]).unwrap();
+        assert_eq!(test_case, [Spare(2)]);
+
+        // Spare on first position then Open
+        let test_case = ImperativeFrame::to_frame(&vec![9,1,2,3]).unwrap();
+        assert_eq!(test_case, [Spare(2), Open(2,3)]);
+
+        // 10 Open with 0 pins
+        let test_case = ImperativeFrame::to_frame(&vec![0; 20]).unwrap();
+        assert_eq!(test_case, vec![Open(0,0); 10]);
+
+        // 8 Open with 2 pins, 1 Spare and 1 Strike
+        let test_case = ImperativeFrame::to_frame(&[vec![1; 16], vec![9,1,10,2,3]].concat()).unwrap();
+        assert_eq!(test_case, [vec![Open(1,1); 8], vec![Spare(10)], vec![Strike(2,3)]].concat());
+    }
+
+    #[test]
+    fn test_imperative_to_score_list() {
+        use ImperativeFrame::{Strike, Spare, Open};
+
+        // Perfect game 10xOpen(1,1) 20 points
+        let test_case = ImperativeFrame::frame_list_to_score(&vec![Open(1,1); 10]);
+        assert_eq!(test_case, vec![2; 10]);
+        assert_eq!(test_case.iter().sum::<u32>(), 20);
+
+        // Perfect game 8xOpen(1,1), Spare, Strike, Open(2,3) 51 points
+        let test_case = ImperativeFrame::frame_list_to_score(&[vec![Open(1,1); 8], vec![Spare(10)], vec![Strike(2,3)]].concat());
+        assert_eq!(test_case, [vec![2; 8], vec![20], vec![15]].concat());
+        assert_eq!(test_case.iter().sum::<u32>(), 51);
+
+        // Perfect game 10 Strikes 300 points
+        let test_case = ImperativeFrame::frame_list_to_score(&vec![Strike(10,10); 10]);
+        assert_eq!(test_case, vec![30; 10]);
+        assert_eq!(test_case.iter().sum::<u32>(), 300);
+    }
 }
