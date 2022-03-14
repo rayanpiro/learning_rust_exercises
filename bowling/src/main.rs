@@ -263,6 +263,10 @@ mod tests {
         // 8 Open with 2 pins, 1 Spare and 1 Strike
         let test_case = ImperativeFrame::to_frame(&[vec![1; 16], vec![9,1,10,2,3]].concat()).unwrap();
         assert_eq!(test_case, [vec![Open(1,1); 8], vec![Spare(10)], vec![Strike(2,3)]].concat());
+
+        // Impossible game 8 Open with 2 pins, 1 Spare and 1 Strike with just 1 bonus instead of 2
+        let test_case = ImperativeFrame::to_frame(&[vec![1; 16], vec![9,1,10,2]].concat());
+        assert_eq!(test_case, None);
     }
 
     #[test]
